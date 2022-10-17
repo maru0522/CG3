@@ -189,7 +189,6 @@ private: // メンバ変数
 	XMFLOAT2 texBase = { 0, 0 };
 	// テクスチャ幅、高さ
 	XMFLOAT2 texSize = { 100.0f, 100.0f };
-
 private: // メンバ関数
 	/// <summary>
 	/// 頂点データ転送

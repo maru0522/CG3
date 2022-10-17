@@ -56,6 +56,10 @@ private: // メンバ変数
 	Input* input = nullptr;
 	DebugText debugText;	
 
+	// CG3/1-2/spriteクラスの使い方
+	Sprite* sprite1 = nullptr;
+	Sprite* sprite2 = nullptr;
+
 	/// <summary>
 	/// ゲームシーン用
 	/// </summary>
