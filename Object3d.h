@@ -41,10 +41,7 @@ private: // 定数
 	static const float radius;				// 底面の半径
 	static const float prizmHeight;			// 柱の高さ
 	static const int planeCount = division * 2 + division * 2;		// 面の数
-
-	// CG3/1-3/前準備
-	static const int vertexCount = 4;		// 頂点数
-	static const int indexCount = 3*2;		// インデックス数
+	static const int vertexCount = planeCount * 3;		// 頂点数
 
 public: // 静的メンバ関数
 	/// <summary>
@@ -102,12 +99,6 @@ public: // 静的メンバ関数
 	/// <param name="move">移動量</param>
 	static void CameraMoveVector(XMFLOAT3 move);
 
-	/// <summary>
-	/// ベクトルによる視点移動
-	/// </summary>
-	/// <param name="move">移動量</param>
-	static void CameraMoveEyeVector(XMFLOAT3 move);
-
 private: // 静的メンバ変数
 	// デバイス
 	static ID3D12Device* device;
@@ -145,12 +136,10 @@ private: // 静的メンバ変数
 	static D3D12_VERTEX_BUFFER_VIEW vbView;
 	// インデックスバッファビュー
 	static D3D12_INDEX_BUFFER_VIEW ibView;
-
-	// CG3/1-3/前準備
 	// 頂点データ配列
 	static VertexPosNormalUv vertices[vertexCount];
 	// 頂点インデックス配列
-	static unsigned short indices[indexCount];
+	static unsigned short indices[planeCount * 3];
 
 private:// 静的メンバ関数
 	/// <summary>
