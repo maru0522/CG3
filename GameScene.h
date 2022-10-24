@@ -54,16 +54,16 @@ public: // メンバ関数
 private: // メンバ変数
 	DirectXCommon* dxCommon = nullptr;
 	Input* input = nullptr;
-	DebugText debugText;	
-
-	// CG3/1-2/spriteクラスの使い方
-	Sprite* sprite1 = nullptr;
-	Sprite* sprite2 = nullptr;
+	DebugText debugText;
 
 	/// <summary>
 	/// ゲームシーン用
 	/// </summary>
 	Sprite* spriteBG = nullptr;
-	Object3d* object3d = nullptr;
-};
 
+	static const int maxObj = 50;
+	Object3d* object3d[maxObj] = {};
+
+	Sprite* sprite1 = nullptr;
+	Sprite* sprite2 = nullptr;
+};
