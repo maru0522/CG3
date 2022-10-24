@@ -84,7 +84,7 @@ void GameScene::Update()
 void GameScene::Draw()
 {
 	// コマンドリストの取得
-	ID3D12GraphicsCommandList* cmdList = dxCommon->GetCommandList();
+	ID3D12GraphicsCommandList* cmdList = dxCommon->GetCommandList(); 
 
 #pragma region 背景スプライト描画
 	// 背景スプライト描画前処理
