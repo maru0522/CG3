@@ -183,6 +183,7 @@ void Object3d::InitializeGraphicsPipeline()
 {
 	HRESULT result = S_FALSE;
 	ComPtr<ID3DBlob> vsBlob; // 頂点シェーダオブジェクト
+	ComPtr<ID3DBlob> gsBlob; // ジオメトリシェーダオブジェクト
 	ComPtr<ID3DBlob> psBlob;	// ピクセルシェーダオブジェクト
 	ComPtr<ID3DBlob> errorBlob; // エラーオブジェクト
 
@@ -195,6 +196,29 @@ void Object3d::InitializeGraphicsPipeline()
 		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, // デバッグ用設定
 		0,
 		&vsBlob, &errorBlob);
+	if (FAILED(result)) {
+		// errorBlobからエラー内容をstring型にコピー
+		std::string errstr;
+		errstr.resize(errorBlob->GetBufferSize());
+
+		std::copy_n((char*)errorBlob->GetBufferPointer(),
+			errorBlob->GetBufferSize(),
+			errstr.begin());
+		errstr += "\n";
+		// エラー内容を出力ウィンドウに表示
+		OutputDebugStringA(errstr.c_str());
+		exit(1);
+	}
+
+	// ジオメトリシェーダの読み込みとコンパイル
+	result = D3DCompileFromFile(
+		L"Resources/Shaders/BasicGeometryShader.hlsl",	// シェーダファイル名
+		nullptr,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE, // インクルード可能にする
+		"main", "gs_5_0",	// エントリーポイント名、シェーダーモデル指定
+		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, // デバッグ用設定
+		0,
+		&gsBlob, &errorBlob);
 	if (FAILED(result)) {
 		// errorBlobからエラー内容をstring型にコピー
 		std::string errstr;
@@ -254,6 +278,7 @@ void Object3d::InitializeGraphicsPipeline()
 	// グラフィックスパイプラインの流れを設定
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC gpipeline{};
 	gpipeline.VS = CD3DX12_SHADER_BYTECODE(vsBlob.Get());
+	gpipeline.GS = CD3DX12_SHADER_BYTECODE(gsBlob.Get());
 	gpipeline.PS = CD3DX12_SHADER_BYTECODE(psBlob.Get());
 
 	// サンプルマスク
@@ -279,7 +304,7 @@ void Object3d::InitializeGraphicsPipeline()
 
 	// ブレンドステートの設定
 	gpipeline.BlendState.RenderTarget[0] = blenddesc;
-	gpipeline.BlendState.AlphaToCoverageEnable = true;	//透過ON
+	gpipeline.BlendState.AlphaToCoverageEnable = false;	//透過ON
 
 	// 深度バッファのフォーマット
 	gpipeline.DSVFormat = DXGI_FORMAT_D32_FLOAT;
@@ -334,7 +359,7 @@ void Object3d::LoadTexture()
 	ScratchImage scratchImg{};
 
 	// WICテクスチャのロード
-	result = LoadFromWICFile(L"Resources/kusa.png", WIC_FLAGS_NONE, &metadata, scratchImg);
+	result = LoadFromWICFile(L"Resources/tex1.png", WIC_FLAGS_NONE, &metadata, scratchImg);
 	assert(SUCCEEDED(result));
 
 	ScratchImage mipChain{};
@@ -591,11 +616,11 @@ void Object3d::Update()
 
 	if (isYBillboard)
 	{
-		matWorld *= matBillboardY;	//Y軸ビルボード行列をかける
+		//matWorld *= matBillboardY;	//Y軸ビルボード行列をかける
 	}
 	else
 	{
-		matWorld *= matBillboard;	//ビルボード行列をかける
+		//matWorld *= matBillboard;	//ビルボード行列をかける
 	}
 
 	matWorld *= matTrans;	//ワールド行列に平行移動を反映
