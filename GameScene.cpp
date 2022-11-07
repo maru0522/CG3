@@ -13,7 +13,7 @@ GameScene::~GameScene()
 	delete spriteBG;
 	for (size_t i = 0; i < maxObj; i++)
 	{
-		delete object3d[i];
+		delete particleMan[i];
 	}
 	delete sprite1;
 	delete sprite2;
@@ -42,16 +42,6 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 	//ランダム数生成用
 	srand(time(nullptr));
 
-	// 3Dオブジェクト生成
-	for (size_t i = 0; i < maxObj; i++)
-	{
-		object3d[i] = Object3d::Create();
-
-		//出現範囲-20~20のランダムで決める
-		object3d[i]->SetPosition({ static_cast<float>(rand() % 40 - 20),0,static_cast<float>(rand() % 40 - 20) });
-		object3d[i]->Update();
-	}
-
 	//前景スプライト生成
 	//テクスチャ2番に読み込み
 	Sprite::LoadTexture(2, L"Resources/texture.png");
@@ -66,20 +56,7 @@ void GameScene::Update()
 	// オブジェクト移動
 	if (input->PushKey(DIK_UP) || input->PushKey(DIK_DOWN) || input->PushKey(DIK_RIGHT) || input->PushKey(DIK_LEFT))
 	{
-		for (size_t i = 0; i < maxObj; i++)
-		{
-			// 現在の座標を取得
-			XMFLOAT3 position = object3d[i]->GetPosition();
 
-			// 移動後の座標を計算
-			if (input->PushKey(DIK_UP)) { position.y += 1.0f; }
-			else if (input->PushKey(DIK_DOWN)) { position.y -= 1.0f; }
-			if (input->PushKey(DIK_RIGHT)) { position.x += 1.0f; }
-			else if (input->PushKey(DIK_LEFT)) { position.x -= 1.0f; }
-
-			// 座標の変更を反映
-			object3d[i]->SetPosition(position);
-		}
 	}
 
 	//SPACEキーでビルボードの種類切り替え
@@ -87,13 +64,13 @@ void GameScene::Update()
 	{
 		for (size_t i = 0; i < maxObj; i++)
 		{
-			if (object3d[i]->GetBillboard())
+			if (particleMan[i]->GetBillboard())
 			{
-				object3d[i]->SetBillboard(false);
+				particleMan[i]->SetBillboard(false);
 			}
 			else
 			{
-				object3d[i]->SetBillboard(true);
+				particleMan[i]->SetBillboard(true);
 			}
 		}
 	}
@@ -101,15 +78,15 @@ void GameScene::Update()
 	// カメラ移動
 	if (input->PushKey(DIK_W) || input->PushKey(DIK_S) || input->PushKey(DIK_D) || input->PushKey(DIK_A))
 	{
-		if (input->PushKey(DIK_W)) { Object3d::CameraMoveEyeVector({ 0.0f,+1.0f,0.0f }); }
-		else if (input->PushKey(DIK_S)) { Object3d::CameraMoveEyeVector({ 0.0f,-1.0f,0.0f }); }
-		if (input->PushKey(DIK_D)) { Object3d::CameraMoveEyeVector({ +1.0f,0.0f,0.0f }); }
-		else if (input->PushKey(DIK_A)) { Object3d::CameraMoveEyeVector({ -1.0f,0.0f,0.0f }); }
+		if (input->PushKey(DIK_W)) { ParticleManager::CameraMoveEyeVector({ 0.0f,+1.0f,0.0f }); }
+		else if (input->PushKey(DIK_S)) { ParticleManager::CameraMoveEyeVector({ 0.0f,-1.0f,0.0f }); }
+		if (input->PushKey(DIK_D)) { ParticleManager::CameraMoveEyeVector({ +1.0f,0.0f,0.0f }); }
+		else if (input->PushKey(DIK_A)) { ParticleManager::CameraMoveEyeVector({ -1.0f,0.0f,0.0f }); }
 	}
 
 	for (size_t i = 0; i < maxObj; i++)
 	{
-		object3d[i]->Update();
+		particleMan[i]->Update();
 	}
 
 	//スプライト移動
@@ -147,12 +124,12 @@ void GameScene::Draw()
 
 #pragma region 3Dオブジェクト描画
 	// 3Dオブジェクト描画前処理
-	Object3d::PreDraw(cmdList);
+	ParticleManager::PreDraw(cmdList);
 
 	// 3Dオブクジェクトの描画
 	for (size_t i = 0; i < maxObj; i++)
 	{
-		object3d[i]->Draw();
+		particleMan[i]->Draw();
 	}
 
 	/// <summary>
@@ -160,7 +137,7 @@ void GameScene::Draw()
 	/// </summary>
 
 	// 3Dオブジェクト描画後処理
-	Object3d::PostDraw();
+	ParticleManager::PostDraw();
 #pragma endregion
 
 #pragma region 前景スプライト描画
