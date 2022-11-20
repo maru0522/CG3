@@ -1,4 +1,4 @@
-#include "BasicShaderHeader.hlsli"
+#include "Particle.hlsli"
 
 // 四角形の頂点数
 static const uint vnum = 4;
@@ -32,6 +32,8 @@ void main(
 	// 4点分まわす
 	for (uint i = 0; i < vnum; i++)
 	{
+        float4 offset = mul(matBillboard, offset_array[i]);
+        element.svpos = input[0].pos + offset;
 		// ワールド座標ベースで、ずらす
 		element.svpos = input[0].pos + offset_array[i]; // 頂点座標をコピー
 		// ビュー、射影変換行列
