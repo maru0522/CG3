@@ -5,6 +5,18 @@
 #include <d3d12.h>
 #include <DirectXMath.h>
 #include <d3dx12.h>
+#include <forward_list>
+
+struct Particle
+{
+    using XMFLOAT3 = DirectX::XMFLOAT3;
+
+    XMFLOAT3 position{};
+    XMFLOAT3 velocity{};
+    XMFLOAT3 accel{};
+    int frame{};
+    int num_frame{};
+};
 
 /// <summary>
 /// 3Dオブジェクト
@@ -45,7 +57,7 @@ private: // 定数
 	static const float radius;				// 底面の半径
 	static const float prizmHeight;			// 柱の高さ
 	static const int planeCount = division * 2 + division * 2;		// 面の数
-	static const int vertexCount = 30;		// 頂点数
+	static const int vertexCount = 1024;		// 頂点数
 	//static const int indexCount = 3 * 2;		// インデックス数
 
 public: // 静的メンバ関数
@@ -216,8 +228,12 @@ public: // メンバ関数
 	/// <param name="position">座標</param>
 	void SetBillboard(const bool isYBillboard) { this->isYBillboard = isYBillboard; }
 
+    void Add(int life, XMFLOAT3 position, XMFLOAT3 velocity, XMFLOAT3 accel);
+
 private: // メンバ変数
 	ComPtr<ID3D12Resource> constBuff; // 定数バッファ
 
 	bool isYBillboard = true;	//true:Y軸ビルボード,false:全方向ビルボード
+
+    std::forward_list<Particle> particles;
 };

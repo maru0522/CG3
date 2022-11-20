@@ -47,11 +47,31 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 
     //前景スプライト生成
     //テクスチャ2番に読み込み
-    Sprite::LoadTexture(2, L"Resources/texture.png");
+    Sprite::LoadTexture(2, L"Resources/effect1.png");
 
     //座標{0,0}に、テクスチャ2番のスプライトを生成
     sprite1 = Sprite::Create(2, { 0,0 });
     sprite2 = Sprite::Create(2, { 500,500 }, { 1,0,0,1 }, { 0, 0 }, false, true);
+
+    for (int i{ 0 }; i < 100; i++) {
+        const float rnd_pos = 10.0f;
+        XMFLOAT3 pos{};
+        pos.x = (float)rand() / RAND_MAX * rnd_pos - rnd_pos / 2.0f;
+        pos.y = (float)rand() / RAND_MAX * rnd_pos - rnd_pos / 2.0f;
+        pos.z = (float)rand() / RAND_MAX * rnd_pos - rnd_pos / 2.0f;
+
+        const float rnd_vel = 0.1f;
+        XMFLOAT3 vel{};
+        vel.x = (float)rand() / RAND_MAX * rnd_vel - rnd_vel / 2.0f;
+        vel.y = (float)rand() / RAND_MAX * rnd_vel - rnd_vel / 2.0f;
+        vel.z = (float)rand() / RAND_MAX * rnd_vel - rnd_vel / 2.0f;
+
+        XMFLOAT3 acc{};
+        const float rnd_acc = 0.001f;
+        acc.y = -(float)rand() / RAND_MAX * rnd_acc;
+
+        particleMan->Add(60, pos, vel, acc);
+    }
 }
 
 void GameScene::Update()

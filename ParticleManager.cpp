@@ -38,6 +38,16 @@ ParticleManager::VertexPos ParticleManager::vertices[vertexCount];
 XMMATRIX ParticleManager::matBillboard = XMMatrixIdentity();
 XMMATRIX ParticleManager::matBillboardY = XMMatrixIdentity();
 
+const DirectX::XMFLOAT3 operator+(const DirectX::XMFLOAT3& lhs, const DirectX::XMFLOAT3& rhs)
+{
+    XMFLOAT3 result;
+    result.x = lhs.x + rhs.x;
+    result.y = lhs.y + rhs.y;
+    result.z = lhs.z + rhs.z;
+    return result;
+}
+
+
 void ParticleManager::StaticInitialize(ID3D12Device* device, int window_width, int window_height)
 {
 	// nullptrチェック
@@ -292,14 +302,15 @@ void ParticleManager::InitializeGraphicsPipeline()
 	//gpipeline.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 	// デプスステンシルステート
 	gpipeline.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+    gpipeline.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
 
 	// レンダーターゲットのブレンド設定
 	D3D12_RENDER_TARGET_BLEND_DESC blenddesc{};
 	blenddesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;	// RBGA全てのチャンネルを描画
 	blenddesc.BlendEnable = true;
-	blenddesc.BlendOp = D3D12_BLEND_OP_ADD;
-	blenddesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
-	blenddesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+	blenddesc.BlendOp = D3D12_BLEND_OP_REV_SUBTRACT;
+	blenddesc.SrcBlend = D3D12_BLEND_ONE;
+	blenddesc.DestBlend = D3D12_BLEND_ONE;
 
 	blenddesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
 	blenddesc.SrcBlendAlpha = D3D12_BLEND_ONE;
@@ -363,7 +374,7 @@ void ParticleManager::LoadTexture()
 	ScratchImage scratchImg{};
 
 	// WICテクスチャのロード
-	result = LoadFromWICFile(L"Resources/texture.png", WIC_FLAGS_NONE, &metadata, scratchImg);
+	result = LoadFromWICFile(L"Resources/effect1.png", WIC_FLAGS_NONE, &metadata, scratchImg);
 	assert(SUCCEEDED(result));
 
 	ScratchImage mipChain{};
@@ -430,13 +441,6 @@ void ParticleManager::LoadTexture()
 void ParticleManager::CreateModel()
 {
 	HRESULT result = S_FALSE;
-
-    for (int i = 0; i < vertexCount; i++) {
-        const float rnd_width = 10.0f;
-        vertices[i].pos.x = (float)rand() / RAND_MAX * rnd_width - rnd_width / 2.0f;
-        vertices[i].pos.y = (float)rand() / RAND_MAX * rnd_width - rnd_width / 2.0f;
-        vertices[i].pos.z = (float)rand() / RAND_MAX * rnd_width - rnd_width / 2.0f;
-}
 
 	//四角形のインデックスデータ
 	unsigned short indicesSquare[] = {
@@ -632,6 +636,24 @@ void ParticleManager::Update()
 	//	matWorld *= parent->matWorld;
 	//}
 
+    particles.remove_if([](Particle& x) {return x.frame >= x.num_frame; });
+
+    for (std::forward_list<Particle>::iterator it = particles.begin(); it != particles.end(); it++) {
+        it->frame++;
+        it->velocity = it->velocity + it->accel;
+        it->position = it->position + it->velocity;
+    }
+
+    VertexPos* vertMap = nullptr;
+    result = vertBuff->Map(0, nullptr, (void**)&vertMap);
+    if (SUCCEEDED(result)) {
+        for (std::forward_list<Particle>::iterator it = particles.begin(); it != particles.end(); it++) {
+            vertMap->pos = it->position;
+            vertMap++;
+        }
+        vertBuff->Unmap(0, nullptr);
+    }
+
 	// 定数バッファへデータ転送
 	ConstBufferData* constMap = nullptr;
 	result = constBuff->Map(0, nullptr, (void**)&constMap);
@@ -664,5 +686,17 @@ void ParticleManager::Draw()
 	// 描画コマンド
 	//cmdList->DrawIndexedInstanced(_countof(indices), 1, 0, 0, 0);
 	//cmdList->DrawIndexedInstanced(3, 1, 0, 0, 0);
-	cmdList->DrawInstanced(_countof(vertices), 1, 0, 0);
+	//cmdList->DrawInstanced(_countof(vertices), 1, 0, 0);
+    cmdList->DrawInstanced((UINT)std::distance(particles.begin(), particles.end()), 1, 0, 0);
+}
+
+void ParticleManager::Add(int life, XMFLOAT3 position, XMFLOAT3 velocity, XMFLOAT3 accel)
+{
+    particles.emplace_front();
+    Particle& p = particles.front();
+
+    p.position = position;
+    p.velocity = velocity;
+    p.accel = accel;
+    p.num_frame = life;
 }
