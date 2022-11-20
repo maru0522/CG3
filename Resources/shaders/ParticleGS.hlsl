@@ -32,7 +32,8 @@ void main(
 	// 4点分まわす
 	for (uint i = 0; i < vnum; i++)
 	{
-        float4 offset = mul(matBillboard, offset_array[i]);
+        float4 offset = offset_array[i] * input[0].scale;
+        offset = mul(matBillboard, offset);
         element.svpos = input[0].pos + offset;
 		// ワールド座標ベースで、ずらす
 		element.svpos = input[0].pos + offset_array[i]; // 頂点座標をコピー

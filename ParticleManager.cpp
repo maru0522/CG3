@@ -270,12 +270,17 @@ void ParticleManager::InitializeGraphicsPipeline()
 	}
 
 	// 頂点レイアウト
-	D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
-		{ // xy座標(1行で書いたほうが見やすい)
-			"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,
-			D3D12_APPEND_ALIGNED_ELEMENT,
-			D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
-		},
+    D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
+        { // xy座標(1行で書いたほうが見やすい)
+            "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,
+            D3D12_APPEND_ALIGNED_ELEMENT,
+            D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
+        },
+        {
+            "TEXCOORD",0,DXGI_FORMAT_R32_FLOAT,0,
+            D3D12_APPEND_ALIGNED_ELEMENT,
+            D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0
+        },
 		//{ // 法線ベクトル(1行で書いたほうが見やすい)
 		//	"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,
 		//	D3D12_APPEND_ALIGNED_ELEMENT,
@@ -605,36 +610,6 @@ bool ParticleManager::Initialize()
 void ParticleManager::Update()
 {
 	HRESULT result;
-	//XMMATRIX matScale, matRot, matTrans;
-
-	//// スケール、回転、平行移動行列の計算
-	//matScale = XMMatrixScaling(scale.x, scale.y, scale.z);
-	//matRot = XMMatrixIdentity();
-	//matRot *= XMMatrixRotationZ(XMConvertToRadians(rotation.z));	//ビルボードの時はローカル回転をZ軸のみに限定
-	//matTrans = XMMatrixTranslation(position.x, position.y, position.z);
-
-	//// ワールド行列の合成
-	//matWorld = XMMatrixIdentity(); // 変形をリセット
-
-	//matWorld *= matScale;	//ワールド行列にスケーリングを反映
-	//matWorld *= matRot;		//ワールド行列に回転を反映
-
-	//if (isYBillboard)
-	//{
-	//	//matWorld *= matBillboardY;	//Y軸ビルボード行列をかける
-	//}
-	//else
-	//{
-	//	//matWorld *= matBillboard;	//ビルボード行列をかける
-	//}
-
-	//matWorld *= matTrans;	//ワールド行列に平行移動を反映
-
-	//// 親オブジェクトがあれば
-	//if (parent != nullptr) {
-	//	// 親オブジェクトのワールド行列を掛ける
-	//	matWorld *= parent->matWorld;
-	//}
 
     particles.remove_if([](Particle& x) {return x.frame >= x.num_frame; });
 
@@ -642,6 +617,11 @@ void ParticleManager::Update()
         it->frame++;
         it->velocity = it->velocity + it->accel;
         it->position = it->position + it->velocity;
+
+        float f = (float)it->num_frame / it->frame;
+
+        it->scale = (it->e_scale - it->s_scale) * f;
+        it->scale += it->s_scale;
     }
 
     VertexPos* vertMap = nullptr;
@@ -649,6 +629,7 @@ void ParticleManager::Update()
     if (SUCCEEDED(result)) {
         for (std::forward_list<Particle>::iterator it = particles.begin(); it != particles.end(); it++) {
             vertMap->pos = it->position;
+            vertMap->scale = it->scale;
             vertMap++;
         }
         vertBuff->Unmap(0, nullptr);
@@ -690,7 +671,7 @@ void ParticleManager::Draw()
     cmdList->DrawInstanced((UINT)std::distance(particles.begin(), particles.end()), 1, 0, 0);
 }
 
-void ParticleManager::Add(int life, XMFLOAT3 position, XMFLOAT3 velocity, XMFLOAT3 accel)
+void ParticleManager::Add(int life, XMFLOAT3 position, XMFLOAT3 velocity, XMFLOAT3 accel, float start_scale, float end_scale)
 {
     particles.emplace_front();
     Particle& p = particles.front();
