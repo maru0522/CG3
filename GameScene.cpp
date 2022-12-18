@@ -48,9 +48,11 @@ void GameScene::Initialize(DirectXCommon* dxCommon, Input* input)
 		object3d[i] = Object3d::Create();
 
 		//出現範囲-20~20のランダムで決める
-		object3d[i]->SetPosition({ static_cast<float>(rand() % 40 - 20),0,static_cast<float>(rand() % 40 - 20) });
-		object3d[i]->Update();
+        object3d[i]->SetPosition({ -2,0,0 });
+		object3d[i]->Update(1);
 	}
+    object3d[1]->SetPosition({ 2,0,0 });
+    object3d[1]->Update(0);
 
 	//前景スプライト生成
 	//テクスチャ2番に読み込み
@@ -107,10 +109,8 @@ void GameScene::Update()
 		else if (input->PushKey(DIK_A)) { Object3d::CameraMoveEyeVector({ -1.0f,0.0f,0.0f }); }
 	}
 
-	for (size_t i = 0; i < maxObj; i++)
-	{
-		object3d[i]->Update();
-	}
+		object3d[0]->Update(1);
+		object3d[1]->Update(0);
 
 	//スプライト移動
 	if (input->PushKey(DIK_SPACE))
